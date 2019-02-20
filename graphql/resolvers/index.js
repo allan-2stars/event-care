@@ -109,7 +109,7 @@ module.exports = {
       description: args.eventInput.description,
       price: +args.eventInput.price,
       date: new Date(args.eventInput.date),
-      creator: '5c6c8ed04d792b295cf1ef0a'
+      creator: '5c6cf8fb644f4631d8de21a9'
     });
     let createdEvent;
     // "return" the evnet, so the resolver will await for the completion
@@ -126,7 +126,7 @@ module.exports = {
           creator: user.bind(this, result._doc.creator)
         };
         // return enriched document
-        return User.findById('5c6c8ed04d792b295cf1ef0a');
+        return User.findById('5c6cf8fb644f4631d8de21a9');
       })
       .then(user => {
         if (!user) {
@@ -174,7 +174,7 @@ module.exports = {
   bookEvent: async args => {
     const fetchedEvent = await Event.findOne({ _id: args.eventId });
     const booking = new Booking({
-      user: '5c6c8ed04d792b295cf1ef0a',
+      user: '5c6cf8fb644f4631d8de21a9',
       event: fetchedEvent
     });
     const result = await booking.save();
@@ -186,5 +186,19 @@ module.exports = {
       createdAt: readableDate(result._doc.createdAt),
       updatedAt: readableDate(result._doc.updatedAt)
     };
+  },
+  cancelBooking: async args => {
+    try {
+      const booking = await Booking.findById(args.bookingId).populate('event');
+      const event = {
+        ...booking.event._doc,
+        _id: booking.event.id,
+        creator: user.bind(this, booking.event.creator)
+      };
+      await Booking.deleteOne({ _id: args.bookingId });
+      return event;
+    } catch (err) {
+      throw err;
+    }
   }
 };
