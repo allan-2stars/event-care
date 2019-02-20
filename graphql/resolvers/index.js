@@ -2,6 +2,7 @@ const bcrypt = require('bcrypt');
 
 const Event = require('../../models/event');
 const User = require('../../models/user');
+const Booking = require('../../models/booking');
 // find all the event for every event Id
 // eventIds is an array of Event ID
 // below function, use async await method for fun.
@@ -22,6 +23,19 @@ const events = async eventIds => {
         creator: user.bind(this, event.creator)
       };
     });
+  } catch (err) {
+    throw err;
+  }
+};
+
+const singleEvent = async eventId => {
+  try {
+    const event = await Event.findById(eventId);
+    return {
+      ...event._doc,
+      _id: event.id,
+      creator: user.bind(this, event.creator)
+    };
   } catch (err) {
     throw err;
   }
@@ -70,6 +84,24 @@ module.exports = {
       .catch(err => {
         throw err;
       });
+  },
+  // use async function
+  bookings: async () => {
+    try {
+      const bookings = await Booking.find();
+      return bookings.map(booking => {
+        return {
+          ...booking._doc,
+          _id: booking.id,
+          user: user.bind(this, booking._doc.user),
+          event: singleEvent.bind(this, booking._doc.event),
+          createdAt: readableDate(booking._doc.createdAt),
+          updatedAt: readableDate(booking._doc.updatedAt)
+        };
+      });
+    } catch (err) {
+      throw err;
+    }
   },
   createEvent: args => {
     const event = new Event({
@@ -138,5 +170,21 @@ module.exports = {
       .catch(err => {
         throw err;
       });
+  },
+  bookEvent: async args => {
+    const fetchedEvent = await Event.findOne({ _id: args.eventId });
+    const booking = new Booking({
+      user: '5c6c8ed04d792b295cf1ef0a',
+      event: fetchedEvent
+    });
+    const result = await booking.save();
+    return {
+      ...result._doc,
+      _id: result.id,
+      user: user.bind(this, result._doc.user),
+      event: singleEvent.bind(this, result._doc.event),
+      createdAt: readableDate(result._doc.createdAt),
+      updatedAt: readableDate(result._doc.updatedAt)
+    };
   }
 };
