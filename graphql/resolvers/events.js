@@ -1,4 +1,5 @@
 const Event = require('../../models/event');
+const User = require('../../models/user');
 const { transformEvent } = require('./merge');
 
 module.exports = {
@@ -15,13 +16,20 @@ module.exports = {
         throw err;
       });
   },
-  createEvent: args => {
+
+  // Private need authenticate
+  createEvent: (args, req) => {
+    // do the authention first
+    if (!req.isAuth) {
+      throw new Error('Not Authenticated!');
+    }
+
     const event = new Event({
       title: args.eventInput.title,
       description: args.eventInput.description,
       price: +args.eventInput.price,
       date: new Date(args.eventInput.date),
-      creator: '5c6cf8fb644f4631d8de21a9'
+      creator: req.userId
     });
     let createdEvent;
     // "return" the evnet, so the resolver will await for the completion
@@ -32,7 +40,7 @@ module.exports = {
         createdEvent = transformEvent(result);
 
         // return enriched document
-        return User.findById('5c6cf8fb644f4631d8de21a9');
+        return User.findById(req.userId);
       })
       .then(user => {
         if (!user) {
