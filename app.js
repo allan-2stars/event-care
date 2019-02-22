@@ -35,7 +35,7 @@ app.use(
 
 // DB config
 const db = require('./config/keys').mongoURI;
-const PORT = 8000;
+const PORT = require('./config/keys').PORT || 8000;
 // Connect to MongoDB
 mongoose
   .connect(db, { useNewUrlParser: true })

@@ -1,13 +1,29 @@
 import React, { Component } from 'react';
 
 import './Auth.css';
+import AuthContext from '../context/auth-context';
 
 class AuthPage extends Component {
+  state = {
+    isLogin: true
+  };
+
+  // use Context
+  // name convension use contextType
+  // and use this.context to assign value
+  static contextType = AuthContext;
+
   constructor(props) {
     super(props);
     this.emailEl = React.createRef();
     this.passwordEl = React.createRef();
   }
+
+  switchModeHandler = () => {
+    this.setState(prevState => {
+      return { isLogin: !prevState.isLogin };
+    });
+  };
 
   submitHandler = event => {
     // prevent default behaviour
@@ -20,35 +36,53 @@ class AuthPage extends Component {
       return;
     }
 
-    const requestBody = {
+    let requestBody = {
       query: `
-        mutation {
-          createUser(userInput:{email:"${email}", password:"${password}"}){
-            _id
-            email
+        query{
+          login(email:"${email}", password:"${password}"){
+            userId
+            token
+            tokenExpiration
           }
         }
       `
     };
 
+    if (!this.state.isLogin) {
+      requestBody = {
+        query: `mutation {
+          createUser(userInput:{email:"${email}", password:"${password}"}){
+            email
+            _id
+          }
+        }`
+      };
+    }
+
     fetch('http://localhost:8000/graphql', {
       method: 'POST',
       body: JSON.stringify(requestBody),
-      header: {
+      headers: {
         'Content-Type': 'application/json'
       }
     })
       .then(res => {
-        if (res.statua !== 200 && res.status !== 201) {
+        if (res.status !== 200 && res.status !== 201) {
           throw new Error('Failed!');
         }
         return res.json();
       })
       .then(resData => {
-        console.log(resData);
+        if (resData.data.login.token) {
+          this.context.login(
+            resData.data.login.token,
+            resData.data.login.userId,
+            resData.data.login.tokenExpiration
+          );
+        }
       })
       .catch(err => {
-        console.log(err);
+        console.log('Errors Happening:', err);
       });
     ///
   };
@@ -64,7 +98,9 @@ class AuthPage extends Component {
           <input type='password' id='password' ref={this.passwordEl} />
         </div>
         <div className='form-actions'>
-          <button type='button'>Switch to Login</button>
+          <button type='button' onClick={this.switchModeHandler}>
+            Switch to {this.state.isLogin ? 'Sign Up' : 'Login'}
+          </button>
           <button type='submit'>Submit</button>
         </div>
       </form>
