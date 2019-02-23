@@ -6,6 +6,7 @@ import './MainNavigation.css';
 
 const mainNavigation = props => (
   <AuthContext.Consumer>
+    {/* // Consumer will get the context value */}
     {context => {
       return (
         <header className='main-navigation'>
@@ -25,9 +26,14 @@ const mainNavigation = props => (
               </li>
               {/* // only rendered after authenticated */}
               {context.token && (
-                <li>
-                  <NavLink to='/bookings'>Bookings</NavLink>
-                </li>
+                <React.Fragment>
+                  <li>
+                    <NavLink to='/bookings'>Bookings</NavLink>
+                  </li>
+                  <li>
+                    <button onClick={context.logout}>Logout</button>
+                  </li>
+                </React.Fragment>
               )}
             </ul>
           </nav>

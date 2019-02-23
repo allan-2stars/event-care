@@ -42,7 +42,6 @@ class App extends Component {
               {/* with Switch, only search the first match, and do not check the rest */}
               <Switch>
                 {/* with Redirect, redirect from some path to some else path */}
-                {!this.state.token && <Redirect from='/' to='/auth' exact />}
                 {this.state.token && <Redirect from='/' to='/events' exact />}
                 {this.state.token && (
                   <Redirect from='/auth' to='/events' exact />
@@ -54,6 +53,7 @@ class App extends Component {
                 {this.state.token && (
                   <Route path='/bookings' exact component={BookingsPage} />
                 )}
+                {!this.state.token && <Redirect to='/auth' />}
               </Switch>
             </main>
           </AuthContext.Provider>
