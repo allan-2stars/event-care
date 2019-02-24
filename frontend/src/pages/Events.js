@@ -9,7 +9,8 @@ import { Collection } from 'mongoose';
 
 class EventsPage extends Component {
   state = {
-    creating: false
+    creating: false,
+    events: []
   };
 
   static contextType = authContext;
@@ -20,6 +21,10 @@ class EventsPage extends Component {
     this.priceEl = React.createRef();
     this.dateEl = React.createRef();
     this.descriptionEl = React.createRef();
+  }
+
+  componentDidMount() {
+    this.fetchEvents();
   }
 
   startCreateEventHandler = () => {
@@ -78,17 +83,63 @@ class EventsPage extends Component {
         return res.json();
       })
       .then(resData => {
-        console.log('result', resData);
+        this.fetchEvents();
       })
       .catch(err => {
-        console.log('Errors Happening:', err);
+        console.log('Errors:', err);
       });
   };
   modalCancelHandler = () => {
     this.setState({ creating: false });
   };
 
+  fetchEvents() {
+    const requestBody = {
+      query: `query {
+          events{
+            _id
+            title
+            date
+            description
+            price
+            creator{
+              _id
+              email
+            }
+          }
+        }`
+    };
+
+    fetch('http://localhost:8000/graphql', {
+      method: 'POST',
+      body: JSON.stringify(requestBody),
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+      .then(res => {
+        if (res.status !== 200 && res.status !== 201) {
+          throw new Error('Failed!');
+        }
+        return res.json();
+      })
+      .then(resData => {
+        const events = resData.data.events;
+        this.setState({ events });
+      })
+      .catch(err => {
+        console.log('Errors Happening:', err);
+      });
+  }
+
   render() {
+    const eventList = this.state.events.map(event => {
+      return (
+        <li key={event._id} className='events__list-item'>
+          {event.title}
+        </li>
+      );
+    });
     return (
       <React.Fragment>
         {this.state.creating && <Backdrop />}
@@ -129,6 +180,7 @@ class EventsPage extends Component {
             </button>
           </div>
         )}
+        <ul className='events__list'>{eventList}</ul>
       </React.Fragment>
     );
   }
