@@ -5,7 +5,7 @@ import Backdrop from '../components/Backdrop/Backdrop';
 import AuthContext from '../context/auth-context';
 import './Event.css';
 import authContext from '../context/auth-context';
-import { Collection } from 'mongoose';
+import EventList from '././../components/Events/EventList/EventList';
 
 class EventsPage extends Component {
   state = {
@@ -133,13 +133,6 @@ class EventsPage extends Component {
   }
 
   render() {
-    const eventList = this.state.events.map(event => {
-      return (
-        <li key={event._id} className='events__list-item'>
-          {event.title}
-        </li>
-      );
-    });
     return (
       <React.Fragment>
         {this.state.creating && <Backdrop />}
@@ -180,7 +173,10 @@ class EventsPage extends Component {
             </button>
           </div>
         )}
-        <ul className='events__list'>{eventList}</ul>
+        <EventList
+          events={this.state.events}
+          authUserId={this.context.userId}
+        />
       </React.Fragment>
     );
   }
